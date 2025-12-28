@@ -1,2 +1,2 @@
-![Preview App](images/Tampilan/Background Biru.png)
+![Preview App](Tampilan/Background Biru.png)
 INI 
