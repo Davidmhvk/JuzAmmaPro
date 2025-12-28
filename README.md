@@ -6,10 +6,24 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 
 ---
 ## 📱 Preview Aplikasi
+**1. HALAMAN UTAMA**
+
 ![Preview App](Tampilan/halaman-utama.png)
+
+**2. SETTING**
+
 ![Preview App](Tampilan/setting.png)
+
+**3. MERAH MUDA**
+
 ![Preview App](Tampilan/background-merah-muda.png)
+
+**4. BIRU**
+
 ![Preview App](Tampilan/background-biru.png)
+
+**5. DIHAFAL**
+
 ![Preview App](Tampilan/yang-dihafal.png)
 
 ---
