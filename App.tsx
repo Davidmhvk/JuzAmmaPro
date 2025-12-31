@@ -32,6 +32,7 @@ import {
   X,
   LogOut,
   ChevronRight,
+  BookOpen,
 } from "lucide-react-native";
 
 // --- 1. TYPE DEFINITIONS ---
@@ -430,31 +431,34 @@ const AyahItem: React.FC<AyahItemProps> = ({
   );
 };
 
-// --- 4. WELCOME SCREEN COMPONENT ---
+// --- 4. WELCOME SCREEN (Halaman Awal) ---
 
 const WelcomeScreen = ({ onEnter }: { onEnter: () => void }) => {
   return (
+    // Background color sudah diset ke Emerald. Ganti hex code di sini jika ingin warna lain.
     <View style={[styles.authContainer, { backgroundColor: "#059669" }]}>
       <StatusBar barStyle="light-content" />
       <View style={styles.welcomeContent}>
-        {/* LOGO CUSTOM ANDA */}
+        {/* CONTAINER LOGO */}
         <View style={styles.logoContainer}>
           <Image
-            source={require("./assets/icon.png")}
+            // Menggunakan adaptive-icon.png sesuai request
+            source={require("./assets/adaptive-icon.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
         </View>
+
         <Text style={styles.welcomeTitle}>Juz Amma Pro</Text>
         <Text style={styles.welcomeSubtitle}>
           Baca, Hafal, dan Tadabbur Al-Quran di mana saja.
         </Text>
       </View>
+
       <View style={styles.bottomAuthCard}>
         <Text style={styles.authCardTitle}>Selamat Datang</Text>
         <Text style={styles.authCardDesc}>
-          Aplikasi ini dirancang untuk memudahkan Anda membaca dan menghafal Juz
-          30.
+          Mari mulai perjalanan menghafal Juz 30 dengan mudah dan nyaman.
         </Text>
         <TouchableOpacity style={styles.primaryBtn} onPress={onEnter}>
           <Text style={styles.primaryBtnText}>Mulai Sekarang</Text>
@@ -644,9 +648,9 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
         <View style={[styles.headerHome, { backgroundColor: theme.primary }]}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.appTitle}>Assalamu'alaikum</Text>
+              <Text style={styles.appTitle}>ASSALAMUALAIKUM</Text>
               <Text style={styles.appSubtitle}>
-                Sudahkah kamu mengaji hari ini?
+                Sudahkah Kamu Mengaji Hari Ini?
               </Text>
             </View>
             <TouchableOpacity
@@ -680,7 +684,7 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
                   activeTab === "all" ? { color: theme.primary } : null,
                 ]}
               >
-                Semua
+                Surah
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1088,20 +1092,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 30,
   },
+
+  // LOGO CONTAINER (Diperbesar)
   logoContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 30,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    width: 300,
+    height: 300, // Ukuran container besar
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    marginBottom: 10,
   },
-  logoImage: { width: 90, height: 90 },
+
+  logoImage: { width: 280, height: 280 }, // Ukuran gambar logo besar
   welcomeTitle: {
     fontSize: 32,
     fontWeight: "bold",
