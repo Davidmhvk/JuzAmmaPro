@@ -5,30 +5,41 @@ JuzAmmaPro adalah aplikasi mobile berbasis **React Native & Expo** yang dirancan
 Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan tadabbur, serta penyimpanan data secara lokal agar tetap tersimpan meskipun aplikasi ditutup.
 
 ---
-## 📱 Preview Aplikasi
-**1. HALAMAN UTAMA**
 
-![Preview App](Tampilan/halaman-utama.png)
+## 📱 Preview Aplikasi
+
+**1. WELCOME PAGE**
+
+![Preview App](Tampilan/welcome.png)
 
 **2. SETTING**
 
 ![Preview App](Tampilan/setting.png)
 
-**3. MERAH MUDA**
+**3. HIJAU**
 
-![Preview App](Tampilan/background-merah-muda.png)
+![Preview App](Tampilan/bg-hijau.png)
 
-**4. BIRU**
+**4. MERAH MUDA**
 
-![Preview App](Tampilan/background-biru.png)
+![Preview App](Tampilan/bg-pink.png)
 
-**5. DIHAFAL**
+**5. BIRU**
 
-![Preview App](Tampilan/yang-dihafal.png)
+![Preview App](Tampilan/bg-biru.png)
+
+**6. Ayat Qur'an**
+
+![Preview App](Tampilan/ayat-quran.png)
+
+**7. DIHAFAL**
+
+![Preview App](Tampilan/yang-hafal.png)
 
 ---
 
 ## ✨ Fitur Utama
+
 - 📖 **Daftar Surah Juz Amma**
 - 🔊 **Audio Murottal per Ayat**
 - ▶️ **Play / Pause & Auto Next Ayat**
@@ -43,6 +54,7 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 ## 🧱 Tech Stack
 
 ### 1️⃣ Framework & Core
+
 - **React Native**  
   Framework utama untuk membangun aplikasi mobile Android & iOS menggunakan JavaScript/TypeScript.
 
@@ -55,6 +67,7 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 ---
 
 ### 2️⃣ Bahasa Pemrograman
+
 - **TypeScript (.tsx)**  
   Seluruh aplikasi ditulis menggunakan TypeScript untuk meningkatkan keamanan tipe data dan mengurangi potensi bug.  
   Contohnya terlihat dari penggunaan:
@@ -65,11 +78,13 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 ---
 
 ### 3️⃣ Library & Fitur Khusus
+
 - **expo-av**  
   Digunakan untuk memutar audio murottal Al-Qur’an, termasuk fitur play, pause, dan auto-next ayat.
 
 - **@react-native-async-storage/async-storage**  
   Digunakan untuk menyimpan data secara lokal di perangkat pengguna, seperti:
+
   - Bookmark (ayat terakhir dibaca)
   - Status hafalan
   - Catatan tadabbur
@@ -84,10 +99,12 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 ---
 
 ### 4️⃣ Sumber Data (API)
+
 - **Al Quran Cloud API**  
   (`https://api.alquran.cloud`)
 
   Aplikasi ini mengambil data secara real-time menggunakan `fetch`, meliputi:
+
   - Teks Arab Al-Qur’an
   - Terjemahan
   - Audio murottal
@@ -97,6 +114,7 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 ---
 
 ### 5️⃣ Styling
+
 - **React Native StyleSheet**  
   Styling dilakukan menggunakan `StyleSheet.create({...})` untuk performa yang optimal dan konsisten di berbagai perangkat.
 

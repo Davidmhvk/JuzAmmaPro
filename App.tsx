@@ -17,7 +17,6 @@ import {
 } from "react-native";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// FIX: Menambahkan 'BookOpen' ke dalam import
 import {
   Search,
   Play,
@@ -25,7 +24,6 @@ import {
   Settings,
   Share2,
   ArrowLeft,
-  BookOpen,
   CheckCircle,
   Edit3,
   Trash2,
@@ -33,9 +31,6 @@ import {
   PenLine,
   X,
   LogOut,
-  User,
-  Mail,
-  Lock,
   ChevronRight,
 } from "lucide-react-native";
 
@@ -70,12 +65,6 @@ interface AyahItemProps extends VerseData {
   isPlaying: boolean;
   onPlay: (url: string) => void;
   theme: ThemeColors;
-}
-
-// User Type
-interface UserData {
-  username: string;
-  email: string;
 }
 
 // --- 2. DATA & CONFIG ---
@@ -441,182 +430,44 @@ const AyahItem: React.FC<AyahItemProps> = ({
   );
 };
 
-// --- 4. AUTH SCREEN COMPONENT ---
+// --- 4. WELCOME SCREEN COMPONENT ---
 
-const AuthScreen = ({
-  onLoginSuccess,
-}: {
-  onLoginSuccess: (user: UserData) => void;
-}) => {
-  const [authView, setAuthView] = useState<"welcome" | "login" | "register">(
-    "welcome"
-  );
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
-    if (!email || !password)
-      return Alert.alert("Gagal", "Mohon isi email dan password.");
-    setLoading(true);
-
-    // SIMULASI LOGIN (Delay 1.5 detik)
-    setTimeout(async () => {
-      // Di sini nanti bisa diganti dengan Firebase Auth
-      const dummyUser = { username: email.split("@")[0], email: email };
-      await AsyncStorage.setItem("user_session", JSON.stringify(dummyUser));
-      setLoading(false);
-      onLoginSuccess(dummyUser);
-    }, 1500);
-  };
-
-  const handleRegister = async () => {
-    if (!username || !email || !password)
-      return Alert.alert("Gagal", "Mohon lengkapi data.");
-    setLoading(true);
-
-    // SIMULASI REGISTER
-    setTimeout(async () => {
-      const newUser = { username, email };
-      await AsyncStorage.setItem("user_session", JSON.stringify(newUser));
-      setLoading(false);
-      Alert.alert("Sukses", "Akun berhasil dibuat!", [
-        { text: "OK", onPress: () => onLoginSuccess(newUser) },
-      ]);
-    }, 1500);
-  };
-
-  if (authView === "welcome") {
-    return (
-      <View style={[styles.authContainer, { backgroundColor: "#059669" }]}>
-        <StatusBar barStyle="light-content" />
-        <View style={styles.welcomeContent}>
-          <View style={styles.logoContainer}>
-            <BookOpen size={64} color="white" />
-          </View>
-          <Text style={styles.welcomeTitle}>Juz Amma Pro</Text>
-          <Text style={styles.welcomeSubtitle}>
-            Baca, Hafal, dan Tadabbur Al-Quran di mana saja.
-          </Text>
-        </View>
-        <View style={styles.bottomAuthCard}>
-          <Text style={styles.authCardTitle}>Mulai Sekarang</Text>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => setAuthView("login")}
-          >
-            <Text style={styles.primaryBtnText}>Masuk</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={() => setAuthView("register")}
-          >
-            <Text style={styles.secondaryBtnText}>Daftar Akun</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
+const WelcomeScreen = ({ onEnter }: { onEnter: () => void }) => {
   return (
-    <View style={styles.authContainer}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.authHeader}>
-        <TouchableOpacity
-          onPress={() => setAuthView("welcome")}
-          style={styles.backBtn}
-        >
-          <ArrowLeft size={24} color="#374151" />
-        </TouchableOpacity>
-        <Text style={styles.authTitle}>
-          {authView === "login" ? "Selamat Datang" : "Buat Akun"}
-        </Text>
-        <Text style={styles.authSubtitle}>
-          {authView === "login"
-            ? "Masuk untuk melanjutkan hafalanmu."
-            : "Daftar untuk mulai perjalananmu."}
+    <View style={[styles.authContainer, { backgroundColor: "#059669" }]}>
+      <StatusBar barStyle="light-content" />
+      <View style={styles.welcomeContent}>
+        {/* LOGO CUSTOM ANDA */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("./assets/icon.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.welcomeTitle}>Juz Amma Pro</Text>
+        <Text style={styles.welcomeSubtitle}>
+          Baca, Hafal, dan Tadabbur Al-Quran di mana saja.
         </Text>
       </View>
-
-      <View style={styles.formContainer}>
-        {authView === "register" && (
-          <View style={styles.inputWrapper}>
-            <User size={20} color="#9CA3AF" style={styles.inputIcon} />
-            <TextInput
-              placeholder="Username"
-              style={styles.authInput}
-              value={username}
-              onChangeText={setUsername}
-            />
-          </View>
-        )}
-
-        <View style={styles.inputWrapper}>
-          <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
-          <TextInput
-            placeholder="Email Address"
-            style={styles.authInput}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-
-        <View style={styles.inputWrapper}>
-          <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
-          <TextInput
-            placeholder="Password"
-            style={styles.authInput}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={styles.actionAuthBtn}
-          onPress={authView === "login" ? handleLogin : handleRegister}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.actionAuthBtnText}>
-              {authView === "login" ? "Masuk" : "Daftar"}
-            </Text>
-          )}
+      <View style={styles.bottomAuthCard}>
+        <Text style={styles.authCardTitle}>Selamat Datang</Text>
+        <Text style={styles.authCardDesc}>
+          Aplikasi ini dirancang untuk memudahkan Anda membaca dan menghafal Juz
+          30.
+        </Text>
+        <TouchableOpacity style={styles.primaryBtn} onPress={onEnter}>
+          <Text style={styles.primaryBtnText}>Mulai Sekarang</Text>
+          <ChevronRight size={20} color="white" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
-
-        <View style={styles.switchAuthContainer}>
-          <Text style={{ color: "#6B7280" }}>
-            {authView === "login" ? "Belum punya akun? " : "Sudah punya akun? "}
-          </Text>
-          <TouchableOpacity
-            onPress={() =>
-              setAuthView(authView === "login" ? "register" : "login")
-            }
-          >
-            <Text style={{ color: "#059669", fontWeight: "bold" }}>
-              {authView === "login" ? "Daftar" : "Masuk"}
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
   );
 };
 
-// --- 5. MAIN APP COMPONENT (Juz Amma Logic) ---
+// --- 5. MAIN APP COMPONENT ---
 
-const MainApp = ({
-  user,
-  onLogout,
-}: {
-  user: UserData;
-  onLogout: () => void;
-}) => {
+const MainApp = ({ onExit }: { onExit: () => void }) => {
   const [view, setView] = useState<"list" | "detail">("list");
   const [activeTab, setActiveTab] = useState<"all" | "memorized">("all");
   const [selectedSurah, setSelectedSurah] = useState<SurahData | null>(null);
@@ -793,9 +644,9 @@ const MainApp = ({
         <View style={[styles.headerHome, { backgroundColor: theme.primary }]}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.appTitle}>Halo, {user.username}</Text>
+              <Text style={styles.appTitle}>Assalamu'alaikum</Text>
               <Text style={styles.appSubtitle}>
-                Lanjutkan hafalanmu hari ini
+                Sudahkah kamu mengaji hari ini?
               </Text>
             </View>
             <TouchableOpacity
@@ -948,9 +799,9 @@ const MainApp = ({
                 </TouchableOpacity>
               ))}
               <View style={styles.divider} />
-              <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
+              <TouchableOpacity onPress={onExit} style={styles.logoutBtn}>
                 <LogOut size={20} color="#EF4444" />
-                <Text style={styles.logoutText}>Keluar Akun</Text>
+                <Text style={styles.logoutText}>Kembali ke Awal</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -1168,20 +1019,20 @@ const MainApp = ({
   );
 };
 
-// --- 6. ROOT APP COMPONENT (Auth Check) ---
+// --- 6. ROOT APP COMPONENT ---
 
 export default function App() {
-  const [user, setUser] = useState<UserData | null>(null);
+  const [hasEntered, setHasEntered] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkUserSession();
+    checkEntryStatus();
   }, []);
 
-  const checkUserSession = async () => {
+  const checkEntryStatus = async () => {
     try {
-      const session = await AsyncStorage.getItem("user_session");
-      if (session) setUser(JSON.parse(session));
+      const status = await AsyncStorage.getItem("has_entered_app");
+      if (status === "true") setHasEntered(true);
     } catch (e) {
       console.error(e);
     } finally {
@@ -1189,15 +1040,20 @@ export default function App() {
     }
   };
 
-  const handleLogout = async () => {
-    Alert.alert("Keluar", "Apakah Anda yakin ingin keluar?", [
+  const handleEnter = async () => {
+    setHasEntered(true);
+    await AsyncStorage.setItem("has_entered_app", "true");
+  };
+
+  const handleExit = async () => {
+    Alert.alert("Kembali", "Kembali ke halaman sambutan?", [
       { text: "Batal" },
       {
-        text: "Keluar",
+        text: "Ya",
         style: "destructive",
         onPress: async () => {
-          await AsyncStorage.removeItem("user_session");
-          setUser(null);
+          await AsyncStorage.removeItem("has_entered_app");
+          setHasEntered(false);
         },
       },
     ]);
@@ -1210,10 +1066,10 @@ export default function App() {
       </View>
     );
 
-  return user ? (
-    <MainApp user={user} onLogout={handleLogout} />
+  return hasEntered ? (
+    <MainApp onExit={handleExit} />
   ) : (
-    <AuthScreen onLoginSuccess={setUser} />
+    <WelcomeScreen onEnter={handleEnter} />
   );
 }
 
@@ -1233,14 +1089,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     borderRadius: 30,
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
+  logoImage: { width: 90, height: 90 },
   welcomeTitle: {
     fontSize: 32,
     fontWeight: "bold",
@@ -1260,78 +1121,26 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
   },
   authCardTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#1F2937",
-    marginBottom: 20,
+    marginBottom: 8,
+  },
+  authCardDesc: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 24,
+    lineHeight: 22,
   },
   primaryBtn: {
     backgroundColor: "#059669",
     padding: 16,
     borderRadius: 16,
     alignItems: "center",
-    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "center",
   },
   primaryBtnText: { color: "white", fontWeight: "bold", fontSize: 16 },
-  secondaryBtn: {
-    backgroundColor: "#F3F4F6",
-    padding: 16,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  secondaryBtnText: { color: "#374151", fontWeight: "bold", fontSize: 16 },
-
-  // Login/Register
-  authHeader: { padding: 30, paddingTop: 60 },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F3F4F6",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  authTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  authSubtitle: { fontSize: 14, color: "#6B7280" },
-  formContainer: { paddingHorizontal: 30 },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    height: 56,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-  },
-  inputIcon: { marginRight: 12 },
-  authInput: { flex: 1, fontSize: 16, color: "#1F2937", height: "100%" },
-  actionAuthBtn: {
-    backgroundColor: "#059669",
-    height: 56,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 8,
-    shadowColor: "#059669",
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  actionAuthBtnText: { color: "white", fontWeight: "bold", fontSize: 16 },
-  switchAuthContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 24,
-  },
 
   // App Header
   headerHome: {
