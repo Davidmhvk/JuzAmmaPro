@@ -13,9 +13,11 @@ import {
   Share,
   Alert,
   Platform,
+  Image,
 } from "react-native";
-import { Audio, AVPlaybackStatus } from "expo-av"; // Audio Player
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Local Storage
+import { Audio, AVPlaybackStatus } from "expo-av";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+// FIX: Menambahkan 'BookOpen' ke dalam import
 import {
   Search,
   Play,
@@ -23,17 +25,22 @@ import {
   Settings,
   Share2,
   ArrowLeft,
+  BookOpen,
   CheckCircle,
   Edit3,
   Trash2,
   Save,
   PenLine,
   X,
-} from "lucide-react-native"; // Icons
+  LogOut,
+  User,
+  Mail,
+  Lock,
+  ChevronRight,
+} from "lucide-react-native";
 
-// --- 1. TYPE DEFINITIONS (Definisi Tipe Data TypeScript) ---
+// --- 1. TYPE DEFINITIONS ---
 
-// Tipe untuk Tema Warna
 interface ThemeColors {
   primary: string;
   light: string;
@@ -41,10 +48,8 @@ interface ThemeColors {
   text: string;
 }
 
-// Kunci untuk pilihan tema
 type ThemeKey = "emerald" | "pink" | "blue";
 
-// Tipe untuk Data Surat (Metadata dari surahList)
 interface SurahData {
   number: number;
   name: string;
@@ -54,7 +59,6 @@ interface SurahData {
   type: string;
 }
 
-// Tipe untuk Data Ayat (dari API)
 interface VerseData {
   number: number;
   text: string;
@@ -62,14 +66,19 @@ interface VerseData {
   audio: string;
 }
 
-// Tipe untuk Props (Parameter) Komponen AyahItem
 interface AyahItemProps extends VerseData {
   isPlaying: boolean;
   onPlay: (url: string) => void;
   theme: ThemeColors;
 }
 
-// --- 2. KONFIGURASI TEMA & DATA ---
+// User Type
+interface UserData {
+  username: string;
+  email: string;
+}
+
+// --- 2. DATA & CONFIG ---
 
 const THEMES: Record<ThemeKey, ThemeColors> = {
   emerald: {
@@ -92,7 +101,6 @@ const THEMES: Record<ThemeKey, ThemeColors> = {
   },
 };
 
-// Data Statis Juz 30 (An-Naba s.d. An-Nas)
 const surahList: SurahData[] = [
   {
     number: 78,
@@ -392,9 +400,8 @@ const surahList: SurahData[] = [
   },
 ];
 
-// --- 3. KOMPONEN KECIL (Sub-Components) ---
+// --- 3. SUB-COMPONENTS ---
 
-// Komponen: Item Ayat Individual
 const AyahItem: React.FC<AyahItemProps> = ({
   number,
   text,
@@ -406,7 +413,6 @@ const AyahItem: React.FC<AyahItemProps> = ({
 }) => {
   return (
     <View style={styles.ayahContainer}>
-      {/* Header Ayat: Nomor & Tombol Play */}
       <View style={styles.ayahHeader}>
         <View style={styles.ayahHeaderLeft}>
           <View
@@ -429,155 +435,279 @@ const AyahItem: React.FC<AyahItemProps> = ({
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Teks Arab */}
       <Text style={styles.arabicText}>{text}</Text>
-
-      {/* Terjemahan */}
       <Text style={styles.translationText}>{translation}</Text>
     </View>
   );
 };
 
-// --- 4. KOMPONEN UTAMA (Main App) ---
+// --- 4. AUTH SCREEN COMPONENT ---
 
-export default function App() {
-  // -- STATE MANAGEMENT --
+const AuthScreen = ({
+  onLoginSuccess,
+}: {
+  onLoginSuccess: (user: UserData) => void;
+}) => {
+  const [authView, setAuthView] = useState<"welcome" | "login" | "register">(
+    "welcome"
+  );
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Navigasi & Tampilan
+  const handleLogin = async () => {
+    if (!email || !password)
+      return Alert.alert("Gagal", "Mohon isi email dan password.");
+    setLoading(true);
+
+    // SIMULASI LOGIN (Delay 1.5 detik)
+    setTimeout(async () => {
+      // Di sini nanti bisa diganti dengan Firebase Auth
+      const dummyUser = { username: email.split("@")[0], email: email };
+      await AsyncStorage.setItem("user_session", JSON.stringify(dummyUser));
+      setLoading(false);
+      onLoginSuccess(dummyUser);
+    }, 1500);
+  };
+
+  const handleRegister = async () => {
+    if (!username || !email || !password)
+      return Alert.alert("Gagal", "Mohon lengkapi data.");
+    setLoading(true);
+
+    // SIMULASI REGISTER
+    setTimeout(async () => {
+      const newUser = { username, email };
+      await AsyncStorage.setItem("user_session", JSON.stringify(newUser));
+      setLoading(false);
+      Alert.alert("Sukses", "Akun berhasil dibuat!", [
+        { text: "OK", onPress: () => onLoginSuccess(newUser) },
+      ]);
+    }, 1500);
+  };
+
+  if (authView === "welcome") {
+    return (
+      <View style={[styles.authContainer, { backgroundColor: "#059669" }]}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.welcomeContent}>
+          <View style={styles.logoContainer}>
+            <BookOpen size={64} color="white" />
+          </View>
+          <Text style={styles.welcomeTitle}>Juz Amma Pro</Text>
+          <Text style={styles.welcomeSubtitle}>
+            Baca, Hafal, dan Tadabbur Al-Quran di mana saja.
+          </Text>
+        </View>
+        <View style={styles.bottomAuthCard}>
+          <Text style={styles.authCardTitle}>Mulai Sekarang</Text>
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={() => setAuthView("login")}
+          >
+            <Text style={styles.primaryBtnText}>Masuk</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={() => setAuthView("register")}
+          >
+            <Text style={styles.secondaryBtnText}>Daftar Akun</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.authContainer}>
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.authHeader}>
+        <TouchableOpacity
+          onPress={() => setAuthView("welcome")}
+          style={styles.backBtn}
+        >
+          <ArrowLeft size={24} color="#374151" />
+        </TouchableOpacity>
+        <Text style={styles.authTitle}>
+          {authView === "login" ? "Selamat Datang" : "Buat Akun"}
+        </Text>
+        <Text style={styles.authSubtitle}>
+          {authView === "login"
+            ? "Masuk untuk melanjutkan hafalanmu."
+            : "Daftar untuk mulai perjalananmu."}
+        </Text>
+      </View>
+
+      <View style={styles.formContainer}>
+        {authView === "register" && (
+          <View style={styles.inputWrapper}>
+            <User size={20} color="#9CA3AF" style={styles.inputIcon} />
+            <TextInput
+              placeholder="Username"
+              style={styles.authInput}
+              value={username}
+              onChangeText={setUsername}
+            />
+          </View>
+        )}
+
+        <View style={styles.inputWrapper}>
+          <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
+          <TextInput
+            placeholder="Email Address"
+            style={styles.authInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
+          <TextInput
+            placeholder="Password"
+            style={styles.authInput}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={styles.actionAuthBtn}
+          onPress={authView === "login" ? handleLogin : handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.actionAuthBtnText}>
+              {authView === "login" ? "Masuk" : "Daftar"}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.switchAuthContainer}>
+          <Text style={{ color: "#6B7280" }}>
+            {authView === "login" ? "Belum punya akun? " : "Sudah punya akun? "}
+          </Text>
+          <TouchableOpacity
+            onPress={() =>
+              setAuthView(authView === "login" ? "register" : "login")
+            }
+          >
+            <Text style={{ color: "#059669", fontWeight: "bold" }}>
+              {authView === "login" ? "Daftar" : "Masuk"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// --- 5. MAIN APP COMPONENT (Juz Amma Logic) ---
+
+const MainApp = ({
+  user,
+  onLogout,
+}: {
+  user: UserData;
+  onLogout: () => void;
+}) => {
   const [view, setView] = useState<"list" | "detail">("list");
   const [activeTab, setActiveTab] = useState<"all" | "memorized">("all");
   const [selectedSurah, setSelectedSurah] = useState<SurahData | null>(null);
+  const [verses, setVerses] = useState<VerseData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Data
-  const [verses, setVerses] = useState<VerseData[]>([]);
-
-  // Audio Player
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const soundRef = useRef<Audio.Sound | null>(null);
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
 
-  // Penyimpanan Lokal (Persistensi)
-  const [lastRead, setLastRead] = useState<SurahData | null>(null);
   const [memorizedSurahs, setMemorizedSurahs] = useState<number[]>([]);
-  const [surahNotes, setSurahNotes] = useState<Record<string, string>>({});
+  const [surahNotes, setSurahNotes] = useState<Record<number, string>>({});
   const [themeName, setThemeName] = useState<ThemeKey>("emerald");
-
-  // Helper Tema
   const theme = THEMES[themeName];
 
-  // UI Interaksi (Modal & Input)
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [tempNoteInput, setTempNoteInput] = useState<string>("");
   const [isEditingNote, setIsEditingNote] = useState<boolean>(false);
 
-  // -- LIFECYCLE & INITIALIZATION --
+  useEffect(() => {
+    soundRef.current = sound;
+  }, [sound]);
 
   useEffect(() => {
     loadStorage();
-    // Konfigurasi Audio agar bisa jalan di mode hening (Silent Mode iOS)
     Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
       staysActiveInBackground: true,
     });
-
-    // Cleanup audio saat aplikasi ditutup
     return () => {
-      if (soundRef.current) {
-        // jangan await di cleanup synchronously
-        soundRef.current.unloadAsync().catch(() => {});
-      }
+      if (soundRef.current) soundRef.current.unloadAsync();
     };
   }, []);
 
-  // Fungsi Memuat Data dari Penyimpanan HP
   const loadStorage = async () => {
     try {
-      const storedLastRead = await AsyncStorage.getItem("last_read");
       const storedMemorized = await AsyncStorage.getItem("memorized");
       const storedNotes = await AsyncStorage.getItem("notes");
       const storedTheme = await AsyncStorage.getItem("theme");
-
-      if (storedLastRead) setLastRead(JSON.parse(storedLastRead));
       if (storedMemorized) setMemorizedSurahs(JSON.parse(storedMemorized));
       if (storedNotes) setSurahNotes(JSON.parse(storedNotes));
       if (storedTheme) setThemeName(storedTheme as ThemeKey);
     } catch (e) {
-      console.error("Gagal memuat data:", e);
+      console.error(e);
     }
   };
 
-  // -- LOGIKA AUDIO (Auto-Next) --
-
   const playAudio = async (url: string) => {
     try {
-      // Skenario 1: Audio yang sama sedang diputar -> Pause
-      if (currentAudioUrl === url && isPlaying && soundRef.current) {
-        await soundRef.current.pauseAsync();
+      if (currentAudioUrl === url && isPlaying && sound) {
+        await sound.pauseAsync();
         setIsPlaying(false);
         return;
       }
-
-      // Skenario 2: Audio yang sama sedang dipause -> Resume
-      if (currentAudioUrl === url && !isPlaying && soundRef.current) {
-        await soundRef.current.playAsync();
+      if (currentAudioUrl === url && !isPlaying && sound) {
+        await sound.playAsync();
         setIsPlaying(true);
         return;
       }
-
-      // Skenario 3: Audio baru -> Stop yang lama, Mainkan yang baru
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-        setSound(null);
-      }
+      if (sound) await sound.unloadAsync();
 
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: url },
         { shouldPlay: true }
       );
-
       setSound(newSound);
-      soundRef.current = newSound;
       setCurrentAudioUrl(url);
       setIsPlaying(true);
 
-      // Event Listener: Deteksi jika audio selesai
       newSound.setOnPlaybackStatusUpdate(async (status: AVPlaybackStatus) => {
         if (status.isLoaded && status.didJustFinish) {
           setIsPlaying(false);
-
-          // Cari index ayat saat ini
           const currentIndex = verses.findIndex((v) => v.audio === url);
-
-          // Jika bukan ayat terakhir, mainkan ayat selanjutnya
           if (currentIndex !== -1 && currentIndex < verses.length - 1) {
-            const nextVerse = verses[currentIndex + 1];
-            playAudio(nextVerse.audio); // Rekursif
+            playAudio(verses[currentIndex + 1].audio);
           }
         }
       });
     } catch (error) {
-      console.log("Error audio:", error);
-      Alert.alert("Error", "Gagal memutar audio. Periksa koneksi internet.");
+      Alert.alert("Error", "Gagal memutar audio.");
     }
   };
 
-  // -- NAVIGASI & DATA FETCHING --
-
   const openSurah = async (surah: SurahData) => {
-    // Stop audio jika ada yang berjalan
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
+    if (sound) {
+      await sound.stopAsync();
       setIsPlaying(false);
-      soundRef.current = null;
     }
-
-    // Set State untuk pindah halaman
     setSelectedSurah(surah);
     setView("detail");
     setLoading(true);
@@ -586,37 +716,22 @@ export default function App() {
     setTempNoteInput(surahNotes[surah.number] || "");
 
     try {
-      // Fetch API (Teks Arab, Indo, Audio)
       const response = await fetch(
         `https://api.alquran.cloud/v1/surah/${surah.number}/editions/quran-uthmani,id.indonesian,ar.alafasy`
       );
       const data = await response.json();
-
       const arabicData = data.data[0];
       const indoData = data.data[1];
       const audioData = data.data[2];
-
-      // Format data agar lebih bersih
-      const versesData: VerseData[] = arabicData.ayahs.map(
-        (ayah: any, index: number) => ({
-          number: ayah.numberInSurah,
-          text: ayah.text,
-          translation: indoData.ayahs[index].text,
-          audio: audioData.ayahs[index].audio,
-        })
-      );
-
+      const versesData = arabicData.ayahs.map((ayah: any, index: number) => ({
+        number: ayah.numberInSurah,
+        text: ayah.text,
+        translation: indoData.ayahs[index].text,
+        audio: audioData.ayahs[index].audio,
+      }));
       setVerses(versesData);
-
-      // Simpan "Terakhir Dibaca"
-      const newHistory = { ...surah };
-      setLastRead(newHistory);
-      await AsyncStorage.setItem("last_read", JSON.stringify(newHistory));
     } catch (error) {
-      Alert.alert(
-        "Koneksi Gagal",
-        "Pastikan internet Anda aktif untuk memuat ayat."
-      );
+      Alert.alert("Error", "Gagal memuat surat.");
     } finally {
       setLoading(false);
     }
@@ -624,22 +739,16 @@ export default function App() {
 
   const goHome = async () => {
     setView("list");
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
+    if (sound) {
+      await sound.stopAsync();
       setIsPlaying(false);
-      soundRef.current = null;
     }
   };
 
-  // -- FITUR CRUD (Hafalan & Catatan) --
-
   const toggleMemorized = async (id: number) => {
-    let newMemorized: number[];
-    if (memorizedSurahs.includes(id)) {
-      newMemorized = memorizedSurahs.filter((item) => item !== id); // Hapus
-    } else {
-      newMemorized = [...memorizedSurahs, id]; // Tambah
-    }
+    let newMemorized = memorizedSurahs.includes(id)
+      ? memorizedSurahs.filter((item) => item !== id)
+      : [...memorizedSurahs, id];
     setMemorizedSurahs(newMemorized);
     await AsyncStorage.setItem("memorized", JSON.stringify(newMemorized));
   };
@@ -654,21 +763,12 @@ export default function App() {
 
   const deleteNote = async () => {
     if (!selectedSurah) return;
-    Alert.alert("Hapus Catatan", "Yakin ingin menghapus catatan ini?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Hapus",
-        style: "destructive",
-        onPress: async () => {
-          const newNotes = { ...surahNotes };
-          delete newNotes[selectedSurah.number];
-          setSurahNotes(newNotes);
-          await AsyncStorage.setItem("notes", JSON.stringify(newNotes));
-          setTempNoteInput("");
-          setIsEditingNote(false);
-        },
-      },
-    ]);
+    const newNotes = { ...surahNotes };
+    delete newNotes[selectedSurah.number];
+    setSurahNotes(newNotes);
+    await AsyncStorage.setItem("notes", JSON.stringify(newNotes));
+    setTempNoteInput("");
+    setIsEditingNote(false);
   };
 
   const changeTheme = async (color: ThemeKey) => {
@@ -677,45 +777,26 @@ export default function App() {
     setShowSettings(false);
   };
 
-  const handleShare = async () => {
-    if (!selectedSurah) return;
-    try {
-      await Share.share({
-        message: `Baca Surah ${selectedSurah.name} (${selectedSurah.meaning}) di Juz Amma Pro.`,
-        title: `Juz Amma Pro - ${selectedSurah.name}`,
-      });
-    } catch (error: any) {
-      // Ignore errors
-    }
-  };
-
-  // -- LOGIKA FILTER PENCARIAN --
   const filteredSurahs = surahList.filter((s) => {
     const matchesSearch =
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.meaning.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.number.toString().includes(searchQuery);
-
-    if (activeTab === "memorized") {
-      return matchesSearch && memorizedSurahs.includes(s.number);
-    }
-    return matchesSearch;
+    return activeTab === "memorized"
+      ? matchesSearch && memorizedSurahs.includes(s.number)
+      : matchesSearch;
   });
 
-  // --- 5. RENDER TAMPILAN ---
-
-  // TAMPILAN: LIST SURAT (HOME)
   if (view === "list") {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor={theme.primary} />
-
-        {/* Header Home */}
         <View style={[styles.headerHome, { backgroundColor: theme.primary }]}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.appTitle}>Juz Amma Pro</Text>
-              <Text style={styles.appSubtitle}>Bacaan, Hafalan & Catatan</Text>
+              <Text style={styles.appTitle}>Halo, {user.username}</Text>
+              <Text style={styles.appSubtitle}>
+                Lanjutkan hafalanmu hari ini
+              </Text>
             </View>
             <TouchableOpacity
               onPress={() => setShowSettings(true)}
@@ -724,8 +805,6 @@ export default function App() {
               <Settings color="white" size={24} />
             </TouchableOpacity>
           </View>
-
-          {/* Search Bar */}
           <View style={styles.searchBar}>
             <Search color="#9CA3AF" size={20} style={{ marginRight: 10 }} />
             <TextInput
@@ -736,8 +815,6 @@ export default function App() {
               placeholderTextColor="#9CA3AF"
             />
           </View>
-
-          {/* Tabs (Semua / Hafalan) */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
               onPress={() => setActiveTab("all")}
@@ -752,7 +829,7 @@ export default function App() {
                   activeTab === "all" ? { color: theme.primary } : null,
                 ]}
               >
-                Semua Surat
+                Semua
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -768,26 +845,16 @@ export default function App() {
                   activeTab === "memorized" ? { color: theme.primary } : null,
                 ]}
               >
-                Hafalan Saya
+                Hafalan
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Daftar Surat */}
         <FlatList
           data={filteredSurahs}
           keyExtractor={(item) => item.number.toString()}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          ListEmptyComponent={
-            <Text
-              style={{ textAlign: "center", color: "#9CA3AF", marginTop: 20 }}
-            >
-              {activeTab === "memorized"
-                ? "Belum ada hafalan."
-                : "Surat tidak ditemukan."}
-            </Text>
-          }
           renderItem={({ item }) => {
             const isMemorized = memorizedSurahs.includes(item.number);
             const hasNote = surahNotes[item.number];
@@ -799,7 +866,6 @@ export default function App() {
                 ]}
                 onPress={() => openSurah(item)}
               >
-                {/* Badge Indikator */}
                 <View style={styles.cardBadgeContainer}>
                   {hasNote && (
                     <View
@@ -815,8 +881,6 @@ export default function App() {
                     />
                   )}
                 </View>
-
-                {/* Info Surat */}
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <View
                     style={[
@@ -827,26 +891,19 @@ export default function App() {
                     {isMemorized ? (
                       <CheckCircle size={20} color={theme.primary} />
                     ) : (
-                      <Text
-                        style={{
-                          fontWeight: "bold",
-                          color: isMemorized ? theme.primary : "#6B7280",
-                        }}
-                      >
+                      <Text style={{ fontWeight: "bold", color: "#6B7280" }}>
                         {item.number}
                       </Text>
                     )}
                   </View>
-                  <View style={{ marginLeft: 12 }}>
+                  <View style={{ marginLeft: 12, marginTop: 6 }}>
                     <Text style={styles.surahName}>{item.name}</Text>
                     <Text style={styles.surahMeta}>
                       {item.type} • {item.verses} Ayat
                     </Text>
                   </View>
                 </View>
-
-                {/* Nama Arab */}
-                <View style={{ alignItems: "flex-end" }}>
+                <View style={{ alignItems: "flex-end", marginTop: 6 }}>
                   <Text style={[styles.surahNameAr, { color: theme.primary }]}>
                     {item.nameAr}
                   </Text>
@@ -857,7 +914,6 @@ export default function App() {
           }}
         />
 
-        {/* Modal Settings */}
         <Modal visible={showSettings} animationType="slide" transparent={true}>
           <TouchableOpacity
             style={styles.modalOverlay}
@@ -865,50 +921,36 @@ export default function App() {
           >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Pengaturan Tema</Text>
+                <Text style={styles.modalTitle}>Pengaturan</Text>
                 <TouchableOpacity onPress={() => setShowSettings(false)}>
                   <X size={24} color="#374151" />
                 </TouchableOpacity>
               </View>
-
-              {/* Opsi Tema */}
-              <TouchableOpacity
-                onPress={() => changeTheme("emerald")}
-                style={styles.themeOption}
-              >
-                <View
-                  style={[styles.colorCircle, { backgroundColor: "#059669" }]}
-                />
-                <Text style={styles.themeText}>Hijau (Emerald)</Text>
-                {themeName === "emerald" && (
-                  <CheckCircle size={20} color="#059669" />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => changeTheme("pink")}
-                style={styles.themeOption}
-              >
-                <View
-                  style={[styles.colorCircle, { backgroundColor: "#db2777" }]}
-                />
-                <Text style={styles.themeText}>Merah Muda (Pink)</Text>
-                {themeName === "pink" && (
-                  <CheckCircle size={20} color="#db2777" />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => changeTheme("blue")}
-                style={styles.themeOption}
-              >
-                <View
-                  style={[styles.colorCircle, { backgroundColor: "#2563eb" }]}
-                />
-                <Text style={styles.themeText}>Biru (Blue)</Text>
-                {themeName === "blue" && (
-                  <CheckCircle size={20} color="#2563eb" />
-                )}
+              <Text style={styles.sectionHeader}>Tema Aplikasi</Text>
+              {(["emerald", "pink", "blue"] as ThemeKey[]).map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => changeTheme(t)}
+                  style={styles.themeOption}
+                >
+                  <View
+                    style={[
+                      styles.colorCircle,
+                      { backgroundColor: THEMES[t].primary },
+                    ]}
+                  />
+                  <Text style={styles.themeText}>
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </Text>
+                  {themeName === t && (
+                    <CheckCircle size={20} color={THEMES[t].primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+              <View style={styles.divider} />
+              <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
+                <LogOut size={20} color="#EF4444" />
+                <Text style={styles.logoutText}>Keluar Akun</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -917,12 +959,9 @@ export default function App() {
     );
   }
 
-  // TAMPILAN: DETAIL SURAT
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-
-      {/* Header Detail */}
       <View style={styles.headerDetail}>
         <TouchableOpacity onPress={goHome} style={{ padding: 8 }}>
           <ArrowLeft size={24} color="#374151" />
@@ -931,12 +970,10 @@ export default function App() {
           <Text style={styles.detailTitle}>{selectedSurah?.name}</Text>
           <Text style={styles.detailSubtitle}>{selectedSurah?.meaning}</Text>
         </View>
-        <TouchableOpacity onPress={handleShare} style={{ padding: 8 }}>
+        <TouchableOpacity style={{ padding: 8 }}>
           <Share2 size={24} color="#374151" />
         </TouchableOpacity>
       </View>
-
-      {/* Isi Surat */}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
@@ -951,7 +988,6 @@ export default function App() {
           contentContainerStyle={{ padding: 16, paddingBottom: 50 }}
           ListHeaderComponent={
             <View>
-              {/* Tombol Hafalan */}
               {selectedSurah && (
                 <TouchableOpacity
                   onPress={() => toggleMemorized(selectedSurah.number)}
@@ -988,8 +1024,6 @@ export default function App() {
                   </Text>
                 </TouchableOpacity>
               )}
-
-              {/* Bismillah */}
               <View style={{ alignItems: "center", marginVertical: 20 }}>
                 <Text style={[styles.bismillahText, { color: theme.primary }]}>
                   بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
@@ -1006,7 +1040,6 @@ export default function App() {
             />
           )}
           ListFooterComponent={
-            // Bagian Catatan (CRUD)
             <View style={styles.notesSection}>
               <View
                 style={{
@@ -1019,17 +1052,15 @@ export default function App() {
                 <Text
                   style={{ fontWeight: "bold", marginLeft: 8, fontSize: 16 }}
                 >
-                  Catatan Tadabbur
+                  Catatan
                 </Text>
               </View>
-
               {isEditingNote ? (
-                // Form Edit Catatan
                 <View style={styles.editNoteContainer}>
                   <TextInput
                     style={styles.noteInput}
                     multiline
-                    placeholder="Tulis catatan hafalan atau pelajaran..."
+                    placeholder="Tulis catatan..."
                     value={tempNoteInput}
                     onChangeText={setTempNoteInput}
                   />
@@ -1061,7 +1092,6 @@ export default function App() {
                   </View>
                 </View>
               ) : (
-                // Tampilan Catatan
                 <View style={styles.noteCard}>
                   {selectedSurah && surahNotes[selectedSurah.number] ? (
                     <View>
@@ -1136,17 +1166,179 @@ export default function App() {
       )}
     </SafeAreaView>
   );
+};
+
+// --- 6. ROOT APP COMPONENT (Auth Check) ---
+
+export default function App() {
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkUserSession();
+  }, []);
+
+  const checkUserSession = async () => {
+    try {
+      const session = await AsyncStorage.getItem("user_session");
+      if (session) setUser(JSON.parse(session));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert("Keluar", "Apakah Anda yakin ingin keluar?", [
+      { text: "Batal" },
+      {
+        text: "Keluar",
+        style: "destructive",
+        onPress: async () => {
+          await AsyncStorage.removeItem("user_session");
+          setUser(null);
+        },
+      },
+    ]);
+  };
+
+  if (loading)
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#059669" />
+      </View>
+    );
+
+  return user ? (
+    <MainApp user={user} onLogout={handleLogout} />
+  ) : (
+    <AuthScreen onLoginSuccess={setUser} />
+  );
 }
 
-// --- 6. STYLES (StyleSheet) ---
+// --- 7. STYLES ---
+
 const styles = StyleSheet.create({
+  // Root
   container: { flex: 1, backgroundColor: "#F9FAFB" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  // Auth Screens
+  authContainer: { flex: 1, backgroundColor: "#FFFFFF" },
+  welcomeContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 30,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 12,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: "#D1FAE5",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  bottomAuthCard: {
+    backgroundColor: "white",
+    padding: 30,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+  },
+  authCardTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 20,
+  },
+  primaryBtn: {
+    backgroundColor: "#059669",
+    padding: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  primaryBtnText: { color: "white", fontWeight: "bold", fontSize: 16 },
+  secondaryBtn: {
+    backgroundColor: "#F3F4F6",
+    padding: 16,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+  secondaryBtnText: { color: "#374151", fontWeight: "bold", fontSize: 16 },
+
+  // Login/Register
+  authHeader: { padding: 30, paddingTop: 60 },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  authTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 8,
+  },
+  authSubtitle: { fontSize: 14, color: "#6B7280" },
+  formContainer: { paddingHorizontal: 30 },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    height: 56,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+  },
+  inputIcon: { marginRight: 12 },
+  authInput: { flex: 1, fontSize: 16, color: "#1F2937", height: "100%" },
+  actionAuthBtn: {
+    backgroundColor: "#059669",
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+    shadowColor: "#059669",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  actionAuthBtnText: { color: "white", fontWeight: "bold", fontSize: 16 },
+  switchAuthContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+
+  // App Header
   headerHome: {
     padding: 20,
     paddingTop: 50,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    elevation: 4,
   },
   headerTop: {
     flexDirection: "row",
@@ -1183,15 +1375,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
   },
-  tabActive: {
-    backgroundColor: "white",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    elevation: 2,
-  },
+  tabActive: { backgroundColor: "white", shadowOpacity: 0.1, elevation: 2 },
   tabText: { fontWeight: "600", fontSize: 13, color: "rgba(255,255,255,0.8)" },
 
-  // List
+  // Surah List
   surahCard: {
     backgroundColor: "white",
     borderRadius: 16,
@@ -1201,13 +1388,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    elevation: 1,
   },
   cardBadgeContainer: {
     position: "absolute",
     top: 8,
     right: 8,
     flexDirection: "row",
+    gap: 4,
   },
   dotBadge: { width: 8, height: 8, borderRadius: 4 },
   numberCircle: {
@@ -1235,7 +1422,6 @@ const styles = StyleSheet.create({
   },
   detailTitle: { fontSize: 18, fontWeight: "bold", color: "#1F2937" },
   detailSubtitle: { fontSize: 12, color: "#6B7280" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   memorizeBtn: {
     flexDirection: "row",
     justifyContent: "center",
@@ -1250,7 +1436,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "System" : "serif",
   },
 
-  // Ayah Styles
+  // Ayah
   ayahContainer: {
     marginBottom: 20,
     borderBottomWidth: 1,
@@ -1286,7 +1472,7 @@ const styles = StyleSheet.create({
   },
   translationText: { fontSize: 14, color: "#4B5563", lineHeight: 22 },
 
-  // Notes Styles
+  // Notes
   notesSection: {
     marginTop: 20,
     paddingTop: 20,
@@ -1337,10 +1523,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#E5E7EB",
     paddingTop: 8,
+    gap: 12,
   },
   actionBtn: { flexDirection: "row", alignItems: "center" },
 
-  // Modal Settings
+  // Settings
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -1349,9 +1536,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "white",
-    width: "80%",
+    width: "85%",
     borderRadius: 20,
-    padding: 20,
+    padding: 24,
   },
   modalHeader: {
     flexDirection: "row",
@@ -1359,7 +1546,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#1F2937" },
+  modalTitle: { fontSize: 20, fontWeight: "bold", color: "#1F2937" },
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 12,
+    marginTop: 10,
+  },
   themeOption: {
     flexDirection: "row",
     alignItems: "center",
@@ -1369,4 +1563,14 @@ const styles = StyleSheet.create({
   },
   colorCircle: { width: 24, height: 24, borderRadius: 12, marginRight: 12 },
   themeText: { flex: 1, fontSize: 16, color: "#374151" },
+  divider: { height: 1, backgroundColor: "#F3F4F6", marginVertical: 16 },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    backgroundColor: "#FEF2F2",
+    borderRadius: 12,
+  },
+  logoutText: { color: "#EF4444", fontWeight: "bold", marginLeft: 8 },
 });
