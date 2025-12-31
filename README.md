@@ -30,6 +30,10 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 
 **7. DIHAFAL**
 
+![Preview App](Tampilan/ayat-quran.png)
+
+**7. DIHAFAL**
+
 ![Preview App](Tampilan/yang-hafal.png)
 
 ---
