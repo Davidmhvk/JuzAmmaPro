@@ -42,6 +42,7 @@ interface ThemeColors {
   light: string;
   bg: string;
   text: string;
+  highlight: string; // Warna untuk highlight ayat aktif
 }
 
 type ThemeKey = "emerald" | "pink" | "blue";
@@ -64,6 +65,7 @@ interface VerseData {
 
 interface AyahItemProps extends VerseData {
   isPlaying: boolean;
+  isActive: boolean; // Prop baru untuk status aktif
   onPlay: (url: string) => void;
   theme: ThemeColors;
 }
@@ -76,18 +78,21 @@ const THEMES: Record<ThemeKey, ThemeColors> = {
     light: "#d1fae5",
     bg: "#ecfdf5",
     text: "#064e3b",
+    highlight: "#f0fdf4",
   },
   pink: {
     primary: "#db2777",
     light: "#fce7f3",
     bg: "#fdf2f8",
     text: "#831843",
+    highlight: "#fdf2f8",
   },
   blue: {
     primary: "#2563eb",
     light: "#dbeafe",
     bg: "#eff6ff",
     text: "#1e3a8a",
+    highlight: "#eff6ff",
   },
 };
 
@@ -398,12 +403,30 @@ const AyahItem: React.FC<AyahItemProps> = ({
   translation,
   audio,
   isPlaying,
+  isActive,
   onPlay,
   theme,
 }) => {
   return (
-    <View style={styles.ayahContainer}>
-      <View style={styles.ayahHeader}>
+    <View
+      style={[
+        styles.ayahContainer,
+        // FITUR HIGHLIGHT: Ubah warna background & border jika ayat sedang aktif
+        isActive
+          ? {
+              backgroundColor: theme.highlight,
+              borderColor: theme.primary,
+              borderWidth: 1.5,
+            }
+          : { borderColor: "#F3F4F6" },
+      ]}
+    >
+      <View
+        style={[
+          styles.ayahHeader,
+          isActive && { backgroundColor: "rgba(255,255,255,0.5)" },
+        ]}
+      >
         <View style={styles.ayahHeaderLeft}>
           <View
             style={[styles.numberBadge, { backgroundColor: theme.primary }]}
@@ -413,7 +436,7 @@ const AyahItem: React.FC<AyahItemProps> = ({
           <TouchableOpacity
             style={[
               styles.playButton,
-              isPlaying && { backgroundColor: theme.light },
+              (isPlaying || isActive) && { backgroundColor: theme.light },
             ]}
             onPress={() => onPlay(audio)}
           >
@@ -431,18 +454,18 @@ const AyahItem: React.FC<AyahItemProps> = ({
   );
 };
 
-// --- 4. WELCOME SCREEN (Halaman Awal) ---
+// --- 4. WELCOME SCREEN (Halaman Awal dengan Logo Image) ---
 
 const WelcomeScreen = ({ onEnter }: { onEnter: () => void }) => {
   return (
-    // Background color sudah diset ke Emerald. Ganti hex code di sini jika ingin warna lain.
+    // TIPS: GANTI KODE WARNA DI BAWAH INI ('#059669') AGAR SAMA DENGAN WARNA BACKGROUND LOGO ANDA
     <View style={[styles.authContainer, { backgroundColor: "#059669" }]}>
       <StatusBar barStyle="light-content" />
       <View style={styles.welcomeContent}>
-        {/* CONTAINER LOGO */}
+        {/* CONTAINER LOGO (TRANSPARAN) */}
         <View style={styles.logoContainer}>
           <Image
-            // Menggunakan adaptive-icon.png sesuai request
+            // Pastikan Anda sudah menaruh file adaptive-icon.png di folder assets!
             source={require("./assets/adaptive-icon.png")}
             style={styles.logoImage}
             resizeMode="contain"
@@ -454,7 +477,6 @@ const WelcomeScreen = ({ onEnter }: { onEnter: () => void }) => {
           Baca, Hafal, dan Tadabbur Al-Quran di mana saja.
         </Text>
       </View>
-
       <View style={styles.bottomAuthCard}>
         <Text style={styles.authCardTitle}>Selamat Datang</Text>
         <Text style={styles.authCardDesc}>
@@ -484,6 +506,9 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const soundRef = useRef<Audio.Sound | null>(null);
 
+  // FITUR AUTO-SCROLL: Ref untuk FlatList
+  const flatListRef = useRef<FlatList>(null);
+
   const [memorizedSurahs, setMemorizedSurahs] = useState<number[]>([]);
   const [surahNotes, setSurahNotes] = useState<Record<number, string>>({});
   const [themeName, setThemeName] = useState<ThemeKey>("emerald");
@@ -496,6 +521,22 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
   useEffect(() => {
     soundRef.current = sound;
   }, [sound]);
+
+  // FITUR AUTO-SCROLL: Effect untuk scroll saat audio berubah
+  useEffect(() => {
+    if (currentAudioUrl && verses.length > 0 && view === "detail") {
+      const index = verses.findIndex((v) => v.audio === currentAudioUrl);
+      if (index !== -1) {
+        // Scroll ke index ayat tersebut
+        // viewPosition: 0 (atas), 0.5 (tengah), 1 (bawah)
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.2,
+        });
+      }
+    }
+  }, [currentAudioUrl, verses]);
 
   useEffect(() => {
     loadStorage();
@@ -648,9 +689,9 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
         <View style={[styles.headerHome, { backgroundColor: theme.primary }]}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.appTitle}>ASSALAMUALAIKUM</Text>
+              <Text style={styles.appTitle}>Assalamu'alaikum</Text>
               <Text style={styles.appSubtitle}>
-                Sudahkah Kamu Mengaji Hari Ini?
+                Sudahkah kamu mengaji hari ini?
               </Text>
             </View>
             <TouchableOpacity
@@ -684,7 +725,7 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
                   activeTab === "all" ? { color: theme.primary } : null,
                 ]}
               >
-                Surah
+                Semua
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -838,9 +879,20 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
         </View>
       ) : (
         <FlatList
+          ref={flatListRef} // FITUR AUTO-SCROLL: Hubungkan Ref ke FlatList
           data={verses}
           keyExtractor={(item) => item.number.toString()}
           contentContainerStyle={{ padding: 16, paddingBottom: 50 }}
+          // Tangani jika scroll gagal (biasanya karena layout belum siap)
+          onScrollToIndexFailed={(info) => {
+            const wait = new Promise((resolve) => setTimeout(resolve, 500));
+            wait.then(() => {
+              flatListRef.current?.scrollToIndex({
+                index: info.index,
+                animated: true,
+              });
+            });
+          }}
           ListHeaderComponent={
             <View>
               {selectedSurah && (
@@ -891,6 +943,8 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
               {...item}
               theme={theme}
               isPlaying={currentAudioUrl === item.audio && isPlaying}
+              // FITUR HIGHLIGHT: Cek apakah audio ayat ini sama dengan yang sedang diputar
+              isActive={currentAudioUrl === item.audio}
               onPlay={playAudio}
             />
           )}
@@ -1023,58 +1077,15 @@ const MainApp = ({ onExit }: { onExit: () => void }) => {
   );
 };
 
-// --- 6. ROOT APP COMPONENT ---
-
+// --- 6. ROOT COMPONENT (YANG WAJIB ADA & DIEKSPOR DEFAULT) ---
 export default function App() {
-  const [hasEntered, setHasEntered] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
 
-  useEffect(() => {
-    checkEntryStatus();
-  }, []);
+  if (showWelcome) {
+    return <WelcomeScreen onEnter={() => setShowWelcome(false)} />;
+  }
 
-  const checkEntryStatus = async () => {
-    try {
-      const status = await AsyncStorage.getItem("has_entered_app");
-      if (status === "true") setHasEntered(true);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEnter = async () => {
-    setHasEntered(true);
-    await AsyncStorage.setItem("has_entered_app", "true");
-  };
-
-  const handleExit = async () => {
-    Alert.alert("Kembali", "Kembali ke halaman sambutan?", [
-      { text: "Batal" },
-      {
-        text: "Ya",
-        style: "destructive",
-        onPress: async () => {
-          await AsyncStorage.removeItem("has_entered_app");
-          setHasEntered(false);
-        },
-      },
-    ]);
-  };
-
-  if (loading)
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
-      </View>
-    );
-
-  return hasEntered ? (
-    <MainApp onExit={handleExit} />
-  ) : (
-    <WelcomeScreen onEnter={handleEnter} />
-  );
+  return <MainApp onExit={() => setShowWelcome(true)} />;
 }
 
 // --- 7. STYLES ---
@@ -1093,16 +1104,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
 
-  // LOGO CONTAINER (Diperbesar)
+  // LOGO CONTAINER (Sudah Transparan)
   logoContainer: {
     width: 300,
-    height: 300, // Ukuran container besar
+    height: 300,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
   },
 
-  logoImage: { width: 280, height: 280 }, // Ukuran gambar logo besar
+  logoImage: { width: 280, height: 280 }, // Ukuran gambar logo
   welcomeTitle: {
     fontSize: 32,
     fontWeight: "bold",
@@ -1252,6 +1263,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#F3F4F6",
     paddingBottom: 20,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   ayahHeader: {
     flexDirection: "row",
