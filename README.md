@@ -28,7 +28,7 @@ Aplikasi ini mendukung pemutaran audio murottal, bookmark ayat terakhir, catatan
 
 ![Preview App](Tampilan/bg-biru.png)
 
-**7. Ayat Quran**
+**6. Ayat Quran**
 
 ![Preview App](Tampilan/ayat-quran.png)
 
